@@ -4,7 +4,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 
 // Dynamic API base URL (no hardcoded IP)
-const API_BASE_URL = `http://${window.location.hostname}:5000`;
+let API_BASE_URL = "";
+if (typeof window !== "undefined") {
+  API_BASE_URL = `http://${window.location.hostname}:5000`;
+}
+
 
 function ArticleDetail() {
   const { id } = useParams();
