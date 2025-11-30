@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 
-// Safe dynamic API base URL for Vercel
-const API_BASE_URL =
-  typeof window !== "undefined"
-    ? `http://${window.location.hostname}:5000`
-    : "";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 function ArticleForm() {
   const [title, setTitle] = useState('');
@@ -15,30 +11,24 @@ function ArticleForm() {
   const { id } = useParams();
 
   useEffect(() => {
-    if (!API_BASE_URL) return; // prevents build-time reference errors
-
     if (id) {
-      axios.get(API_BASE_URL + '/api/articles/' + id)
-        .then((res) => {
+      axios.get(`${API_BASE_URL}/api/articles/${id}`)
+        .then(res => {
           setTitle(res.data.title);
           setContent(res.data.content);
         })
-        .catch((err) => {
-          console.error(err);
-        });
+        .catch(console.error);
     }
   }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       if (id) {
-        await axios.put(API_BASE_URL + '/api/articles/' + id, { title, content });
+        await axios.put(`${API_BASE_URL}/api/articles/${id}`, { title, content });
       } else {
-        await axios.post(API_BASE_URL + '/api/articles', { title, content });
+        await axios.post(`${API_BASE_URL}/api/articles`, { title, content });
       }
-
       navigate('/');
     } catch (err) {
       console.error(err);
@@ -48,6 +38,7 @@ function ArticleForm() {
   return (
     <div>
       <h2>{id ? 'Edit' : 'New'} Article</h2>
+
       <form onSubmit={handleSubmit}>
         <div>
           <label>Title:</label><br />
