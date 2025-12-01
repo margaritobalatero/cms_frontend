@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 
-// ✅ Use environment variable for backend URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || `http://${window.location.hostname}:5000`;
 
 function ArticleDetail() {
   const { id } = useParams();
@@ -17,57 +16,67 @@ function ArticleDetail() {
     const fetchArticle = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/api/articles/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         setArticle(res.data);
       } catch (err) {
-        console.error('Error fetching article:', err);
+        console.error(err);
         setError('Failed to load article');
       } finally {
         setLoading(false);
       }
     };
-
     fetchArticle();
   }, [id]);
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this article?')) {
-      try {
-        await axios.delete(`${API_BASE_URL}/api/articles/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-        navigate('/');
-      } catch (err) {
-        console.error('Error deleting article:', err);
-        alert('Failed to delete article.');
-      }
+    if (!window.confirm('Are you sure you want to delete this article?')) return;
+
+    try {
+      await axios.delete(`${API_BASE_URL}/api/articles/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      setError('Failed to delete article');
     }
   };
 
-  if (loading) return <p>Loading article...</p>;
+  if (loading) return <p>Loading...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
-  if (!article) return <p>No article found.</p>;
+  if (!article) return <p>Article not found.</p>;
 
-  // Sanitize content allowing basic tags
   const cleanHTML = DOMPurify.sanitize(article.content, {
     ALLOWED_TAGS: ['pre', 'b', 'i', 'u', 'p', 'br', 'strong', 'em'],
   });
 
   return (
-    <div>
-      <h2>{article.title}</h2>
-      <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />
-      <p>
-        <small>Created at: {new Date(article.createdAt).toLocaleString()}</small>
+    <div
+      style={{
+        backgroundColor: '#fff',
+        padding: '20px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      }}
+    >
+      <h2 style={{ marginTop: 0 }}>{article.title}</h2>
+      <p style={{ color: '#666', fontSize: '14px' }}>
+        Created at: {new Date(article.createdAt).toLocaleString()}
       </p>
-      <Link to={`/edit/${article._id}`}>Edit</Link> |{' '}
-      <button onClick={handleDelete}>Delete</button> |{' '}
-      <Link to="/">Back</Link>
+      <div
+        style={{ margin: '20px 0', lineHeight: '1.6' }}
+        dangerouslySetInnerHTML={{ __html: cleanHTML }}
+      />
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <Link to={`/edit/${article._id}`}>
+          <button>Edit</button>
+        </Link>
+        <button onClick={handleDelete}>Delete</button>
+        <Link to="/">
+          <button>Back</button>
+        </Link>
+      </div>
     </div>
   );
 }
