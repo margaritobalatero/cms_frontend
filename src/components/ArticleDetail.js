@@ -58,24 +58,23 @@ function ArticleDetail() {
         padding: '20px',
         borderRadius: '8px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        color: '#000',      // 100% black letters
+        fontSize: '18px',   // slightly larger font for article content
+        lineHeight: '1.8',  // improved readability
       }}
     >
-      <h2 style={{ marginTop: 0 }}>{article.title}</h2>
-      <p style={{ color: '#666', fontSize: '14px' }}>
+      <h2 style={{ marginTop: 0, fontSize: '24px', color: '#000' }}>{article.title}</h2>
+      <p style={{ color: '#000', fontSize: '14px' }}>
         Created at: {new Date(article.createdAt).toLocaleString()}
       </p>
       <div
-        style={{ margin: '20px 0', lineHeight: '1.6' }}
+        style={{ margin: '20px 0' }}
         dangerouslySetInnerHTML={{ __html: cleanHTML }}
       />
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-        <Link to={`/edit/${article._id}`}>
-          <button>Edit</button>
-        </Link>
+        <Link to={`/edit/${article._id}`}><button>Edit</button></Link>
         <button onClick={handleDelete}>Delete</button>
-        <Link to="/">
-          <button>Back</button>
-        </Link>
+        <Link to="/"><button>Back</button></Link>
       </div>
     </div>
   );
