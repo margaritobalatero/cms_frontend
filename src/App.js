@@ -43,7 +43,19 @@ function App() {
   return (
     <Router>
       <div style={{ maxWidth: 800, margin: 'auto', padding: 20 }}>
-        <h1>Junjie Notes</h1>
+        <h1 style={{ 
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px'
+}}>
+  <img 
+    src="/junjie.png" 
+    alt="Logo" 
+    style={{ width: '40px', height: '40px', borderRadius: '6px' }}
+  />
+  Junjie Notes
+</h1>
+
 
         <nav>
           <Link to="/">Home</Link> |{" "}
