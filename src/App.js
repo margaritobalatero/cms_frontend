@@ -49,7 +49,7 @@ function App() {
   gap: '10px'
 }}>
   <img 
-    src="/junjie.png" 
+    src="/jie.png" 
     alt="Logo" 
     style={{ width: '40px', height: '40px', borderRadius: '6px' }}
   />
