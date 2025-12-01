@@ -34,6 +34,7 @@ function ArticleList() {
   return (
     <div>
       <h2>Articles</h2>
+
       <input
         type="text"
         placeholder="Search articles..."
@@ -57,7 +58,7 @@ function ArticleList() {
             style={{
               display: 'block',
               padding: '15px',
-              backgroundColor: '#fff',
+              backgroundColor: '#e9e9e9',     // 🔥 changed to light gray
               borderRadius: '8px',
               boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
               textDecoration: 'none',
@@ -66,7 +67,7 @@ function ArticleList() {
             }}
           >
             <h3 style={{ margin: 0 }}>{article.title}</h3>
-            <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
+            <p style={{ margin: '5px 0', color: '#444', fontSize: '14px' }}>
               {new Date(article.createdAt).toLocaleDateString()}
             </p>
           </Link>
