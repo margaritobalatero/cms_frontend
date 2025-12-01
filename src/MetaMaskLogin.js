@@ -1,16 +1,23 @@
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 
-function MetaMaskLogin() {
-  const [loading, setLoading] = useState(false);
+// ✅ Set your backend URL here
+// Use localhost for development, deployed URL for production
+const API =
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
-  // Already logged in? Redirect to home.
+export default function MetaMaskLogin() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Redirect if already logged in
   if (localStorage.getItem("token")) {
     return <Navigate to="/" replace />;
   }
 
   async function connectWallet() {
     try {
+      setError("");
       if (!window.ethereum) {
         alert("MetaMask not detected.");
         return;
@@ -18,50 +25,51 @@ function MetaMaskLogin() {
 
       setLoading(true);
 
-      // 1. Connect Wallet
+      // 1️⃣ Connect Wallet
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
       const wallet = accounts[0];
 
-      // 2. Request nonce
-      const nonceRes = await fetch("http://localhost:5000/auth/request-nonce", {
+      // 2️⃣ Request nonce from backend
+      const nonceRes = await fetch(`${API}/auth/request-nonce`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet }),
       });
 
+      if (!nonceRes.ok) throw new Error("Failed to get nonce");
+
       const nonceData = await nonceRes.json();
       const message = `Login nonce: ${nonceData.nonce}`;
 
-      // 3. Sign message
+      // 3️⃣ Sign message with MetaMask
       const signature = await window.ethereum.request({
         method: "personal_sign",
         params: [message, wallet],
       });
 
-      // 4. Verify signature & get JWT
-      const verifyRes = await fetch("http://localhost:5000/auth/verify", {
+      // 4️⃣ Verify signature on backend
+      const verifyRes = await fetch(`${API}/auth/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet, signature }),
       });
 
+      if (!verifyRes.ok) throw new Error("Login verification failed");
+
       const verifyData = await verifyRes.json();
 
-      if (!verifyData.token) {
-        alert("Login failed.");
-        return;
-      }
+      if (!verifyData.token) throw new Error("No token received");
 
-      // 5. Save JWT
+      // 5️⃣ Save JWT in localStorage
       localStorage.setItem("token", verifyData.token);
 
-      // 6. Redirect home
+      // 6️⃣ Redirect to home or dashboard
       window.location.href = "/";
     } catch (err) {
-      alert("Login failed: " + err.message);
-    } finally {
+      console.error(err);
+      setError("Login failed: " + err.message);
       setLoading(false);
     }
   }
@@ -69,8 +77,8 @@ function MetaMaskLogin() {
   return (
     <div style={{ padding: 20 }}>
       <h2>Login with MetaMask</h2>
-
-      <button 
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <button
         onClick={connectWallet}
         disabled={loading}
         style={{ padding: "8px 15px", cursor: "pointer" }}
@@ -80,5 +88,3 @@ function MetaMaskLogin() {
     </div>
   );
 }
-
-export default MetaMaskLogin;
