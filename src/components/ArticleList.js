@@ -2,61 +2,38 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-// ✅ Use env variable for backend API
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Backend URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || `http://${window.location.hostname}:5000`;
 
 function ArticleList() {
   const [articles, setArticles] = useState([]);
   const [search, setSearch] = useState('');
 
-  // Load all articles
-  const fetchArticles = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/articles`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      setArticles(res.data);
-    } catch (err) {
-      console.error('Error fetching articles:', err);
-      setArticles([]);
-    }
+  const fetchArticles = () => {
+    axios.get(`${API_BASE_URL}/api/articles`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    })
+      .then(res => setArticles(res.data))
+      .catch(console.error);
   };
 
-  // Search articles
-  const searchArticles = async (keyword) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/articles/search?q=${keyword}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      setArticles(res.data);
-    } catch (err) {
-      console.error('Error searching articles:', err);
-      setArticles([]);
-    }
+  const searchArticles = (keyword) => {
+    axios.get(`${API_BASE_URL}/api/articles/search?q=${keyword}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    })
+      .then(res => setArticles(res.data))
+      .catch(console.error);
   };
 
+  useEffect(() => { fetchArticles(); }, []);
   useEffect(() => {
-    fetchArticles();
-  }, []);
-
-  // When search changes
-  useEffect(() => {
-    if (search.trim() === '') {
-      fetchArticles();
-    } else {
-      searchArticles(search);
-    }
+    if (search.trim() === '') fetchArticles();
+    else searchArticles(search);
   }, [search]);
 
   return (
     <div>
       <h2>Articles</h2>
-
-      {/* 🔍 Search Bar */}
       <input
         type="text"
         placeholder="Search articles..."
@@ -72,13 +49,29 @@ function ArticleList() {
 
       {articles.length === 0 && <p>No articles found.</p>}
 
-      <ul>
+      <div style={{ display: 'grid', gap: '15px' }}>
         {articles.map(article => (
-          <li key={article._id}>
-            <Link to={`/article/${article._id}`}>{article.title}</Link>
-          </li>
+          <Link
+            key={article._id}
+            to={`/article/${article._id}`}
+            style={{
+              display: 'block',
+              padding: '15px',
+              backgroundColor: '#fff',
+              borderRadius: '8px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              textDecoration: 'none',
+              color: '#333',
+              transition: 'transform 0.1s, box-shadow 0.2s',
+            }}
+          >
+            <h3 style={{ margin: 0 }}>{article.title}</h3>
+            <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
+              {new Date(article.createdAt).toLocaleDateString()}
+            </p>
+          </Link>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
