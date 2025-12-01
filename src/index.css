@@ -81,3 +81,12 @@ nav {
 nav a {
   margin-right: 10px;
 }
+
+/* Article card hover */
+a[style*="display: block"] {
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+a[style*="display: block"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
