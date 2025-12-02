@@ -1,16 +1,12 @@
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 
-// ✅ Set your backend URL here
-// Use localhost for development, deployed URL for production
-const API =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export default function MetaMaskLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Redirect if already logged in
   if (localStorage.getItem("token")) {
     return <Navigate to="/" replace />;
   }
@@ -29,9 +25,11 @@ export default function MetaMaskLogin() {
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
-      const wallet = accounts[0];
 
-      // 2️⃣ Request nonce from backend
+      // Lowercase for backend
+      const wallet = accounts[0].toLowerCase();
+
+      // 2️⃣ Request nonce
       const nonceRes = await fetch(`${API}/auth/request-nonce`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,13 +41,13 @@ export default function MetaMaskLogin() {
       const nonceData = await nonceRes.json();
       const message = `Login nonce: ${nonceData.nonce}`;
 
-      // 3️⃣ Sign message with MetaMask
+      // 3️⃣ Sign message (MetaMask needs original case)
       const signature = await window.ethereum.request({
         method: "personal_sign",
-        params: [message, wallet],
+        params: [message, accounts[0]],
       });
 
-      // 4️⃣ Verify signature on backend
+      // 4️⃣ Verify signature
       const verifyRes = await fetch(`${API}/auth/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,10 +60,9 @@ export default function MetaMaskLogin() {
 
       if (!verifyData.token) throw new Error("No token received");
 
-      // 5️⃣ Save JWT in localStorage
       localStorage.setItem("token", verifyData.token);
 
-      // 6️⃣ Redirect to home or dashboard
+      // Redirect
       window.location.href = "/";
     } catch (err) {
       console.error(err);
