@@ -7,9 +7,7 @@ export default function MetaMaskLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (localStorage.getItem("token")) {
-    return <Navigate to="/" replace />;
-  }
+  if (localStorage.getItem("token")) return <Navigate to="/" replace />;
 
   async function connectWallet() {
     try {
@@ -21,41 +19,46 @@ export default function MetaMaskLogin() {
 
       setLoading(true);
 
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      const wallet = accounts[0];
+      // 1️⃣ Connect wallet
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const wallet = accounts[0].trim().toLowerCase(); // <-- TRIM + LOWERCASE for backend
 
+      // 2️⃣ Request nonce
       const nonceRes = await fetch(`${API}/auth/request-nonce`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet }),
       });
 
-      if (!nonceRes.ok) throw new Error("Failed to get nonce");
+      if (!nonceRes.ok) {
+        const errData = await nonceRes.json();
+        throw new Error(errData.message || "Failed to get nonce");
+      }
 
       const nonceData = await nonceRes.json();
       const message = `Login nonce: ${nonceData.nonce}`;
 
+      // 3️⃣ Sign message
       const signature = await window.ethereum.request({
         method: "personal_sign",
-        params: [message, wallet],
+        params: [message, accounts[0]], // original case
       });
 
+      // 4️⃣ Verify signature
       const verifyRes = await fetch(`${API}/auth/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet, signature }),
       });
 
-      if (!verifyRes.ok) throw new Error("Login verification failed");
+      if (!verifyRes.ok) {
+        const errData = await verifyRes.json();
+        throw new Error(errData.message || "Login verification failed");
+      }
 
       const verifyData = await verifyRes.json();
 
-      if (!verifyData.token) throw new Error("No token received");
-
       localStorage.setItem("token", verifyData.token);
-
       window.location.href = "/";
     } catch (err) {
       console.error(err);

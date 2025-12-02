@@ -1,95 +1,95 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || `http://${window.location.hostname}:5000`;
+// ✅ Use env variable for backend URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-export default function ArticleForm() {
-  const { id } = useParams();
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+function ArticleForm() {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const token = localStorage.getItem("token");
-
+  // Load article if editing
   useEffect(() => {
-    const fetchArticle = async () => {
-      if (!token || !id) return; // Hooks always called, just early exit inside
-
-      setLoading(true);
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/articles/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTitle(res.data.title);
-        setContent(res.data.content);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load article");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArticle();
-  }, [id, token]);
+    if (id) {
+      const fetchArticle = async () => {
+        try {
+          const res = await axios.get(`${API_BASE_URL}/api/articles/${id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          });
+          setTitle(res.data.title);
+          setContent(res.data.content);
+        } catch (err) {
+          console.error('Error fetching article:', err);
+          setError('Failed to load article');
+        }
+      };
+      fetchArticle();
+    }
+  }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) return alert("Please login first");
-    if (!title || !content) return alert("Title and content required");
-
     setLoading(true);
+    setError('');
     try {
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      };
+
       if (id) {
-        await axios.put(
-          `${API_BASE_URL}/api/articles/${id}`,
-          { title, content },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert("Article updated!");
+        await axios.put(`${API_BASE_URL}/api/articles/${id}`, { title, content }, { headers });
       } else {
-        await axios.post(
-          `${API_BASE_URL}/api/articles`,
-          { title, content },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert("Article created!");
+        await axios.post(`${API_BASE_URL}/api/articles`, { title, content }, { headers });
       }
-      navigate("/");
+      navigate('/');
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Failed to save article");
+      console.error('Error saving article:', err);
+      setError('Failed to save article');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      {!token && <p>Please login first.</p>}
-      <h2>{id ? "Edit Article" : "Create New Article"}</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div>
+      <h2>{id ? 'Edit' : 'New'} Article</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={{ display: "block", marginBottom: 10, width: 300 }}
-        />
-        <textarea
-          placeholder="Content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          style={{ display: "block", marginBottom: 10, width: 300, height: 100 }}
-        />
+        <div>
+          <label>Title:</label>
+          <br />
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            style={{ width: '100%' }}
+          />
+        </div>
+        <div>
+          <label>Content:</label>
+          <br />
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            required
+            rows={10}
+            style={{ width: '100%' }}
+          />
+        </div>
         <button type="submit" disabled={loading}>
-          {loading ? "Saving..." : id ? "Update Article" : "Create Article"}
+          {loading ? (id ? 'Updating...' : 'Creating...') : id ? 'Update' : 'Create'}
         </button>
       </form>
     </div>
   );
 }
+
+export default ArticleForm;
