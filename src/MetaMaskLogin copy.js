@@ -21,7 +21,7 @@ export default function MetaMaskLogin() {
 
       // 1️⃣ Connect wallet
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-      const wallet = accounts[0].trim().toLowerCase(); // <-- normalize wallet
+      const wallet = accounts[0].trim().toLowerCase(); // <-- TRIM + LOWERCASE for backend
 
       // 2️⃣ Request nonce
       const nonceRes = await fetch(`${API}/auth/request-nonce`, {
@@ -41,7 +41,7 @@ export default function MetaMaskLogin() {
       // 3️⃣ Sign message
       const signature = await window.ethereum.request({
         method: "personal_sign",
-        params: [message, accounts[0]],
+        params: [message, accounts[0]], // original case
       });
 
       // 4️⃣ Verify signature
@@ -57,9 +57,8 @@ export default function MetaMaskLogin() {
       }
 
       const verifyData = await verifyRes.json();
-      localStorage.setItem("token", verifyData.token);
 
-      // Redirect
+      localStorage.setItem("token", verifyData.token);
       window.location.href = "/";
     } catch (err) {
       console.error(err);
