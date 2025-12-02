@@ -13,7 +13,6 @@ export default function ArticleDetail() {
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
-  if (!token) return <p>Please login first.</p>;
 
   const getWalletFromToken = () => {
     try {
@@ -26,12 +25,17 @@ export default function ArticleDetail() {
 
   useEffect(() => {
     const fetchArticle = async () => {
+      if (!token) {
+        setError('Please login first.');
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await axios.get(`${API_BASE_URL}/api/articles/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Only allow owner to view/edit/delete
         if (res.data.userId !== getWalletFromToken()) {
           setError('You are not authorized to view this article.');
           setArticle(null);
@@ -45,6 +49,7 @@ export default function ArticleDetail() {
         setLoading(false);
       }
     };
+
     fetchArticle();
   }, [id, token]);
 
