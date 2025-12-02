@@ -12,30 +12,42 @@ function MetaMaskLogin({ onLogin }) {
         return;
       }
 
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      // 1. Request accounts
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+
       const wallet = accounts[0].toLowerCase();
 
-      // 1. Request nonce
-      const nonceRes = await axios.post(`${API}/auth/request-nonce`, { wallet });
+      // 2. Request nonce (backend expects wallet)
+      const nonceRes = await axios.post(`${API}/auth/request-nonce`, {
+        wallet
+      });
+
       const message = `Login nonce: ${nonceRes.data.nonce}`;
 
-      // 2. Sign nonce
+      // 3. Sign the message with MetaMask
       const signature = await window.ethereum.request({
         method: "personal_sign",
         params: [message, wallet]
       });
 
-      // 3. Verify
-      const verifyRes = await axios.post(`${API}/auth/verify`, { wallet, signature });
+      // 4. Verify signature (backend accepts wallet)
+      const verifyRes = await axios.post(`${API}/auth/verify`, {
+        wallet,
+        signature
+      });
 
+      // 5. Store token + wallet
       localStorage.setItem("token", verifyRes.data.token);
       localStorage.setItem("wallet", wallet);
 
       alert("Login success!");
+
       if (onLogin) onLogin();
 
     } catch (err) {
-      console.error(err);
+      console.error("MetaMask login error:", err);
       alert("Login failed");
     }
   };
