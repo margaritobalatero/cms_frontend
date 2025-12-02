@@ -13,7 +13,6 @@ export default function ArticleDetail() {
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
-  if (!token) return <p>Please login first.</p>;
 
   const getWalletFromToken = () => {
     try {
@@ -25,13 +24,18 @@ export default function ArticleDetail() {
   };
 
   useEffect(() => {
+    if (!token) {
+      setError('Please login first');
+      setLoading(false);
+      return;
+    }
+
     const fetchArticle = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/api/articles/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Only allow owner to view/edit/delete
         if (res.data.userId !== getWalletFromToken()) {
           setError('You are not authorized to view this article.');
           setArticle(null);
@@ -45,6 +49,7 @@ export default function ArticleDetail() {
         setLoading(false);
       }
     };
+
     fetchArticle();
   }, [id, token]);
 
@@ -72,26 +77,3 @@ export default function ArticleDetail() {
 
   return (
     <div
-      style={{
-        backgroundColor: '#fff',
-        padding: '20px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        color: '#000',
-        fontSize: '18px',
-        lineHeight: '1.8',
-      }}
-    >
-      <h2 style={{ marginTop: 0, fontSize: '24px', color: '#000' }}>{article.title}</h2>
-      <p style={{ color: '#000', fontSize: '14px' }}>
-        Created at: {new Date(article.createdAt).toLocaleString()}
-      </p>
-      <div style={{ margin: '20px 0' }} dangerouslySetInnerHTML={{ __html: cleanHTML }} />
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-        <Link to={`/edit/${article._id}`}><button>Edit</button></Link>
-        <button onClick={handleDelete}>Delete</button>
-        <Link to="/"><button>Back</button></Link>
-      </div>
-    </div>
-  );
-}
