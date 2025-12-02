@@ -62,7 +62,7 @@ function App() {
           <Link to="/new">New Article</Link>
 
           {" | "}
-          {!loggedIn && <Link to="/login"></Link>}
+          {!loggedIn && <Link to="/login">Login</Link>}
           {loggedIn && <LogoutButton />}
         </nav>
 
