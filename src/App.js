@@ -68,15 +68,7 @@ function App() {
 
         <Routes>
           {/* Public */}
-          <Route 
-  path="/login" 
-  element={
-    loggedIn 
-      ? <Navigate to="/" replace /> 
-      : <MetaMaskLogin onLogin={() => window.location.href = "/"} />
-  } 
-/>
-
+          <Route path="/login" element={<MetaMaskLogin />} />
 
           {/* Protected Routes */}
           <Route 
