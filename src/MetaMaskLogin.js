@@ -1,62 +1,83 @@
-import React from "react";
-import axios from "axios";
+import React, { useState } from "react";
+import { Navigate } from "react-router-dom";
 
-const API = process.env.REACT_APP_API_URL || `http://${window.location.hostname}:5000`;
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
-function MetaMaskLogin({ onLogin }) {
+export default function MetaMaskLogin() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const connectWallet = async () => {
+  if (localStorage.getItem("token")) return <Navigate to="/" replace />;
+
+  async function connectWallet() {
     try {
+      setError("");
       if (!window.ethereum) {
-        alert("MetaMask not found");
+        alert("MetaMask not detected.");
         return;
       }
 
-      // 1. Request accounts
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
+      setLoading(true);
+
+      // 1️⃣ Connect wallet
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const wallet = accounts[0].trim().toLowerCase(); // <-- TRIM + LOWERCASE for backend
+
+      // 2️⃣ Request nonce
+      const nonceRes = await fetch(`${API}/auth/request-nonce`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet }),
       });
 
-      const wallet = accounts[0].toLowerCase();
+      if (!nonceRes.ok) {
+        const errData = await nonceRes.json();
+        throw new Error(errData.message || "Failed to get nonce");
+      }
 
-      // 2. Request nonce (backend expects wallet)
-      const nonceRes = await axios.post(`${API}/auth/request-nonce`, {
-        wallet
-      });
+      const nonceData = await nonceRes.json();
+      const message = `Login nonce: ${nonceData.nonce}`;
 
-      const message = `Login nonce: ${nonceRes.data.nonce}`;
-
-      // 3. Sign the message with MetaMask
+      // 3️⃣ Sign message
       const signature = await window.ethereum.request({
         method: "personal_sign",
-        params: [message, wallet]
+        params: [message, accounts[0]], // original case
       });
 
-      // 4. Verify signature (backend accepts wallet)
-      const verifyRes = await axios.post(`${API}/auth/verify`, {
-        wallet,
-        signature
+      // 4️⃣ Verify signature
+      const verifyRes = await fetch(`${API}/auth/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet, signature }),
       });
 
-      // 5. Store token + wallet
-      localStorage.setItem("token", verifyRes.data.token);
-      localStorage.setItem("wallet", wallet);
+      if (!verifyRes.ok) {
+        const errData = await verifyRes.json();
+        throw new Error(errData.message || "Login verification failed");
+      }
 
-      alert("Login success!");
+      const verifyData = await verifyRes.json();
 
-      if (onLogin) onLogin();
-
+      localStorage.setItem("token", verifyData.token);
+      window.location.href = "/";
     } catch (err) {
-      console.error("MetaMask login error:", err);
-      alert("Login failed");
+      console.error(err);
+      setError("Login failed: " + err.message);
+      setLoading(false);
     }
-  };
+  }
 
   return (
-    <button onClick={connectWallet}>
-      Connect with MetaMask
-    </button>
+    <div style={{ padding: 20 }}>
+      <h2>Login with MetaMask</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <button
+        onClick={connectWallet}
+        disabled={loading}
+        style={{ padding: "8px 15px", cursor: "pointer" }}
+      >
+        {loading ? "Connecting..." : "Connect MetaMask"}
+      </button>
+    </div>
   );
 }
-
-export default MetaMaskLogin;
