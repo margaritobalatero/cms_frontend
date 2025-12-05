@@ -9,11 +9,6 @@ function ArticleList() {
   const [articles, setArticles] = useState([]);
   const [search, setSearch] = useState('');
 
-  const wallet = localStorage.getItem('wallet');   // ⬅ GET wallet
-
-  // Optional: shorten wallet for display
-  const shorten = (addr) => addr ? addr.slice(0, 6) + '...' + addr.slice(-4) : '';
-
   const fetchArticles = () => {
     axios.get(`${API_BASE_URL}/api/articles`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -36,44 +31,8 @@ function ArticleList() {
     else searchArticles(search);
   }, [search]);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('wallet');
-    window.location.href = '/login';
-  };
-
   return (
     <div>
-
-      {/* 🔥 Top bar with wallet + logout button */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px',
-        padding: '12px',
-        background: '#f3f3f3',
-        borderRadius: '8px'
-      }}>
-        <div style={{ fontWeight: 'bold', color: '#444' }}>
-          Wallet: {wallet ? shorten(wallet) : 'Not Logged In'}
-        </div>
-
-        <button
-          onClick={logout}
-          style={{
-            padding: '8px 14px',
-            background: '#d9534f',
-            border: 'none',
-            borderRadius: '6px',
-            color: 'white',
-            cursor: 'pointer'
-          }}
-        >
-          Logout
-        </button>
-      </div>
-
       <h2>Articles</h2>
 
       <input
@@ -99,7 +58,7 @@ function ArticleList() {
             style={{
               display: 'block',
               padding: '15px',
-              backgroundColor: '#e9e9e9',
+              backgroundColor: '#e9e9e9',     // 🔥 changed to light gray
               borderRadius: '8px',
               boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
               textDecoration: 'none',
