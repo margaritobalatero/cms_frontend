@@ -38,14 +38,10 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
-    ],
-    "overrides": {
-      "react-quill": {
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "ajv": "6.12.6",
-        "ajv-keywords": "3.5.2"
-      }
-    }
+    ]
+  },
+  "overrides": {
+    "ajv": "6.12.6",
+    "ajv-keywords": "3.5.2"
   }
 }
