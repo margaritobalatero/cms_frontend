@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 
 // ✅ Use env variable for backend URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -63,7 +61,6 @@ function ArticleForm() {
     <div>
       <h2>{id ? 'Edit' : 'New'} Article</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-
       <form onSubmit={handleSubmit}>
         <div>
           <label>Title:</label>
@@ -73,20 +70,20 @@ function ArticleForm() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            style={{ width: '100%', padding: '8px' }}
+            style={{ width: '100%' }}
           />
         </div>
-
-        <div style={{ marginTop: '15px' }}>
+        <div>
           <label>Content:</label>
-          <ReactQuill
-            theme="snow"
+          <br />
+          <textarea
             value={content}
-            onChange={setContent}
-            style={{ height: '300px', marginBottom: '50px' }}
+            onChange={(e) => setContent(e.target.value)}
+            required
+            rows={10}
+            style={{ width: '100%' }}
           />
         </div>
-
         <button type="submit" disabled={loading}>
           {loading ? (id ? 'Updating...' : 'Creating...') : id ? 'Update' : 'Create'}
         </button>

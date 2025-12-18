@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL || `http://${window.location.hostname}:5000`;
+const API_BASE_URL = process.env.REACT_APP_API_URL || `http://${window.location.hostname}:5000`;
 
 function ArticleDetail() {
   const { id } = useParams();
@@ -17,9 +16,7 @@ function ArticleDetail() {
     const fetchArticle = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/api/articles/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         setArticle(res.data);
       } catch (err) {
@@ -37,9 +34,7 @@ function ArticleDetail() {
 
     try {
       await axios.delete(`${API_BASE_URL}/api/articles/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       navigate('/');
     } catch (err) {
@@ -52,18 +47,8 @@ function ArticleDetail() {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (!article) return <p>Article not found.</p>;
 
-  // ✅ Allow WordPress / React-Quill HTML safely
   const cleanHTML = DOMPurify.sanitize(article.content, {
-    ALLOWED_TAGS: [
-      'h1', 'h2', 'h3', 'h4',
-      'p', 'br',
-      'b', 'i', 'u', 'strong', 'em',
-      'ul', 'ol', 'li',
-      'blockquote',
-      'pre', 'code',
-      'a', 'span'
-    ],
-    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    ALLOWED_TAGS: ['pre', 'b', 'i', 'u', 'p', 'br', 'strong', 'em'],
   });
 
   return (
@@ -73,22 +58,19 @@ function ArticleDetail() {
         padding: '20px',
         borderRadius: '8px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        color: '#000',
-        fontSize: '18px',
-        lineHeight: '1.8',
+        color: '#000',      // 100% black letters
+        fontSize: '18px',   // slightly larger font for article content
+        lineHeight: '1.8',  // improved readability
       }}
     >
-      <h2 style={{ marginTop: 0, fontSize: '24px' }}>{article.title}</h2>
-
-      <p style={{ fontSize: '14px' }}>
+      <h2 style={{ marginTop: 0, fontSize: '24px', color: '#000' }}>{article.title}</h2>
+      <p style={{ color: '#000', fontSize: '14px' }}>
         Created at: {new Date(article.createdAt).toLocaleString()}
       </p>
-
       <div
         style={{ margin: '20px 0' }}
         dangerouslySetInnerHTML={{ __html: cleanHTML }}
       />
-
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         <Link to={`/edit/${article._id}`}><button>Edit</button></Link>
         <button onClick={handleDelete}>Delete</button>
